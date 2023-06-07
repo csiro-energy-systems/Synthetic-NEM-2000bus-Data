@@ -6,7 +6,6 @@ This repository contains the Matpower files of a synthetic network model for Nat
 - `snem197.m'   contains synthetic network data for Tamania sub-network.
 
 The data set development algorithm and technical report can be found at
-- CSIRO github repo
 - arvix link
 
 
