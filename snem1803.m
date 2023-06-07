@@ -1,3 +1,20 @@
+%   (Optimal) Power flow data for Synthetic National Electricity Market (NEM) Australia - Mainland subnetwork.
+%
+%   This dataset is derived by complementing and extending the S-NEM2300bus benchmark data and software
+%   released under BSD licence, https://opensource.org/license/BSD-3-clause/
+%   and as part the following work:
+%   - F. Arraño-Vargas and G. Konstantinou, "Modular Design and Real-Time Simulators Toward Power System Digital Twins Implementation,"
+%     in IEEE Transactions on Industrial Informatics, doi: 10.1109/TII.2022.3178713 (https://doi.org/10.1109/TII.2022.3178713)
+%   - F. Arraño-Vargas and G. Konstantinou, "Synthetic Grid Modeling for Real-Time Simulations," 2021 IEEE PES Innovative Smart Grid Technologies - Asia (ISGT Asia),
+%     2021, pp. 1-5, doi: 10.1109/ISGTAsia49270.2021.9715654 (https://doi.org/10.1109/ISGTAsia49270.2021.9715654)
+%
+%   The technical report on the dataset development can be found at: (arvix link)
+%
+%   Copyright (c) 2023 by Rahmat Heidari rahmat.heidarihaei@csiro.au
+%   Licensed under the Creative Commons Attribution 4.0
+%   International license, http://creativecommons.org/licenses/by/4.0/
+%  
+
 %% MATPOWER Case Format : Version 2
 function mpc = NEM
 mpc.version = '2';
