@@ -1,4 +1,4 @@
-# Synthetic-NEM-2000bus
+# Synthetic-NEM-2000bus-Data
 This repository contains the Matpower files of a synthetic network model for National Electricity Market (NEM) of Australia.
 
 - `snem2000.m'  contains synthetic network data for all states.
