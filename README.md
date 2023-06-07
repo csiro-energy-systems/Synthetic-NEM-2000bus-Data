@@ -3,7 +3,7 @@ This repository contains the Matpower files of a synthetic network model for Nat
 
 - `snem2000.m'  contains synthetic network data for all states.
 - `snem1803.m'  contains synthetic network data for the mainland sub-network.
-- `snem197.m'   contains synthetic network data for Tamania.
+- `snem197.m'   contains synthetic network data for Tamania sub-network.
 
 The data set development algorithm and technical report can be found at
 - CSIRO github repo
