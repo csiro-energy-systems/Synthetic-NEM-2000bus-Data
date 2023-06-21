@@ -8,7 +8,7 @@
 %   - F. Arraño-Vargas and G. Konstantinou, "Synthetic Grid Modeling for Real-Time Simulations," 2021 IEEE PES Innovative Smart Grid Technologies - Asia (ISGT Asia),
 %     2021, pp. 1-5, doi: 10.1109/ISGTAsia49270.2021.9715654 (https://doi.org/10.1109/ISGTAsia49270.2021.9715654)
 %
-%   The technical report on the dataset development can be found at: (arvix link)
+%   The technical report on the dataset development can be found at: https://arxiv.org/abs/2306.08176
 %
 %   Copyright (c) 2023 by Rahmat Heidari rahmat.heidarihaei@csiro.au
 %   Licensed under the Creative Commons Attribution 4.0
