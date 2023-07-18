@@ -8,6 +8,14 @@ This repository contains the Matpower files of a synthetic network model for Nat
 The data set development algorithm and technical report can be found at https://arxiv.org/abs/2306.08176,
 with CSIRO Data Access Portal release at https://doi.org/10.25919/esxz-q276.
 
+## MatPower
+MATPOWER solves the cases using either IPOPT or Artelys Knitro with the default parameters.
+ - r = runopf('snem2000', mpoption('verbose', 2, 'opf.ac.solver', 'IPOPT'));
+ - r = runopf('snem2000', mpoption('verbose', 2, 'opf.ac.solver', 'KNITRO'));
+
+The default MIPS solver can also solve the problem with on step-size control and increase the number of iterations.
+ - e.g. r = runopf('snem2000', mpoption('verbose', 2, 'mips.step_control', 1, 'mips.max_it', 400));
+
 
 ## License
 This data is licensed under CC-BY (https://creativecommons.org/licenses/by/4.0/).
