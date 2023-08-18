@@ -10,7 +10,7 @@
 %
 %   The technical report on the dataset development can be found at: https://arxiv.org/abs/2306.08176
 %
-%   Copyright (c) 2023 by Rahmat Heidari rahmat.heidarihaei@csiro.au
+%   Copyright (c) 2023 by Rahmat Heidari (rahmat.heidarihaei@csiro.au)
 %   Licensed under the Creative Commons Attribution 4.0
 %   International license, http://creativecommons.org/licenses/by/4.0/
 %  

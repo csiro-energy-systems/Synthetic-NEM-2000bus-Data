@@ -4,9 +4,12 @@ This repository contains the Matpower files of a synthetic network model for Nat
 - `snem2000.m'  contains synthetic network data for all states.
 - `snem1803.m'  contains synthetic network data for the mainland sub-network.
 - `snem197.m'   contains synthetic network data for Tamania sub-network.
+- `snem2000_acdc.m'  contains synthetic network data for all states, including three hvdc interconnectors and converter stations.
+- snem2000_tnep: contains nine transmission network expansion line candidates.
 
 The data set development algorithm and technical report can be found at https://arxiv.org/abs/2306.08176,
-with CSIRO Data Access Portal release at https://doi.org/10.25919/esxz-q276.
+with CSIRO Data Access Portal release at https://doi.org/10.25919/esxz-q276. The network data are also available at https://github.com/power-grid-lib/pglib-opf/releases/tag/v23.07.
+
 
 ## MatPower
 MATPOWER solves the cases using either IPOPT or Artelys Knitro with the default parameters.
@@ -15,6 +18,16 @@ MATPOWER solves the cases using either IPOPT or Artelys Knitro with the default 
 
 The default MIPS solver can also solve the problem with on step-size control and increase the number of iterations.
  - e.g. r = runopf('snem2000', mpoption('verbose', 2, 'mips.step_control', 1, 'mips.max_it', 400));
+
+
+## Proof-of-concept studies
+Several scripts are provided to showcase how the data can be used for research studies:
+ - PowerModels: Optimal power flow relaxations using PowerModels.jl
+ - PowerModelsACDC: Optimal power flow relaxations of the netowrk with HVDC lines using PowerModelsACDC.jl
+ - PowerSimulations: Unit commitment and economic dispatch studies using PowerSimulations.jl
+ - PowerModels_tnep: Transmission network expansion planning study using PowerModels.jl
+ - SecurityConstrained: Study of security constrained optimal power flow using PowerModelsACDCsecurityconstrained.jl
+
 
 
 ## License

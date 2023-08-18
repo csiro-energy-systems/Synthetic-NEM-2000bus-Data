@@ -11,6 +11,9 @@
 %
 %   The technical report on the dataset development can be found at: https://arxiv.org/abs/2306.08176
 %
+%   Following modifications with respect to the SNEM2000 and SNEM197 systems have been made:
+%   - Nine candidate branches are added for network expansion planning studies.
+%
 %   Copyright (c) 2023 by Rahmat Heidari (rahmat.heidarihaei@csiro.au)
 %   Licensed under the Creative Commons Attribution 4.0
 %   International license, http://creativecommons.org/licenses/by/4.0/
@@ -2027,6 +2030,32 @@ mpc.bus = [
 	10112	1	0.0	0.0	0.0	0.0	5	1.0	0.0	110.0	1	1.1	0.9				
 	10113	1	0.0	0.0	0.0	0.0	5	1.0	0.0	110.0	1	1.1	0.9				
 ];
+
+// 119   (330) - 93   (330) (NSW-NSW)
+// 135   (330) - 119  (330) (NSW-NSW)
+// 1566  (275) - 1523 (275) (QLD-QLD)
+// 1523  (275) - 1557 (275) (QLD-QLD)
+// 10004 (500) - 844  (500) (NSW-VIC)
+// 758   (220) - 93   (330) (NSW-VIC)
+// 135   (330) - 1566 (275) (NSW-QLD)
+// 119   (330) - 1742 (275) (NSW-SA)
+// 807   (220) - 1566 (275) (VIC-SA)
+
+%column_names%	f_bus	t_bus	br_r	br_x	br_b	rate_a	rate_b	rate_c	tap	shift	br_status	angmin	angmax	construction_cost
+mpc.ne_branch = [
+	119 	 93	 	 0.0015226911730319302	0.012573578141885802	0.158634648919081	697.0	697.0	697.0	1		0	1	-30	30	 14611;		% NSW to NSW - 320 km
+	119 	 135	 0.0015226911730319302	0.012573578141885802	0.158634648919081	697.0	697.0	697.0	1		0	1	-30	30	 41095;  	% NSW to NSW  - 900 km
+	1566 	 1523	 0.0015226911730319302	0.012573578141885802	0.158634648919081	697.0	697.0	697.0	1		0	1	-30	30	 41095;  	% QLD to QLD  - 900 km
+	1523 	 1557	 0.0015226911730319302	0.012573578141885802	0.158634648919081	697.0	697.0	697.0	1		0	1	-30	30	 41095;  	% QLD to QLD  - 900 km
+	10004	 844	 0.0011225049821915992	0.013771688338268497	1.6954215021408197	1344.0	1344.0	1344.0	1		0	1	-30	30	 20091;		% VIC to NSW - 440 km
+	93 	 	 758 	 0.0015226911730319302	0.012573578141885802	0.158634648919081	697.0	697.0	697.0	1.3		0	1	-30	30	 14611;		% VIC to NSW - 320 km
+	135 	 1566	 0.0015226911730319302	0.012573578141885802	0.158634648919081	697.0	697.0	697.0	1.17	0	1	-30	30	 14611;		% QLD to NSW - 320 km
+	119 	 1742	 0.0015226911730319302	0.012573578141885802	0.158634648919081	697.0	697.0	697.0	1.17	0	1	-30	30	 41095;  	% SA to NSW  - 900 km
+	1566 	 807	 0.0015226911730319302	0.012573578141885802	0.158634648919081	697.0	697.0	697.0	1.2		0	1	-30	30	 41095;  	% SA to VIC  - 900 km
+];
+
+
+
 
 %% generator data
 %    bus    Pg    Qg    Qmax    Qmin    Vg    mBase    status    Pmax    Pmin    Pc1    Pc2    Qc1min    Qc1max    Qc2min    Qc2max    ramp_agc    ramp_10    ramp_30    ramp_q    apf
