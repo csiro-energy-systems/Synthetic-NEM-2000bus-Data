@@ -5,7 +5,7 @@ This repository contains the Matpower files of a synthetic network model for Nat
 - `snem1803.m'  contains synthetic network data for the mainland sub-network.
 - `snem197.m'   contains synthetic network data for Tamania sub-network.
 - `snem2000_acdc.m'  contains synthetic network data for all states, including three hvdc interconnectors and converter stations.
-- snem2000_tnep: contains nine transmission network expansion line candidates.
+- `snem2000_tnep' contains nine transmission network expansion line candidates.
 
 The data set development algorithm and technical report can be found at https://arxiv.org/abs/2306.08176,
 with CSIRO Data Access Portal release at https://doi.org/10.25919/esxz-q276. The network data are also available at https://github.com/power-grid-lib/pglib-opf/releases/tag/v23.07.
@@ -35,6 +35,8 @@ This data is licensed under CC-BY (https://creativecommons.org/licenses/by/4.0/)
 
 ## Contributors
 - Rahmat Heidari
+- Ghulam Mohy Ud Din
+- Hakan Ergun
 - Matthew Amos
 - Frederik Geth
 
