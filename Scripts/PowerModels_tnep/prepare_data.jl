@@ -188,6 +188,36 @@ function get_demand_data(scenario, year; verbose = true)
 end
 
 
+function prepare_data(data_path; merge_parallel_lines = true, hvdc = true, no_bass = false,  no_terra = false,  no_murray = false)
+    # Get grid data from the NEM 2000 bus model m-file 
+    data = _PM.parse_file(data_path)
+    # Assign buses to states
+    add_area_dict!(data)
+
+    if hvdc
+        # Process data to fit into PMACDC model
+        _PMACDC.process_additional_data!(data)
+        # Delete DC lines which have been modelled as AC lines
+        fix_hvdc_data_issues!(data, no_bass = no_bass, no_terra = no_terra, no_murray = no_murray)
+    end
+
+    # Extend data model with flexible demand, to be able to do demand shedding if required
+    add_demand_data!(data)
+
+    # Aggregate demand data per state to modulate with hourly traces
+    # aggregate_demand_data!(data)
+
+    # fix data issues, e.g. putting generation cost in € / pu:
+    # fix_data!(data; hvdc = hvdc)
+
+    if merge_parallel_lines
+        merge_all_parallel_lines(data)
+    end
+
+    return data
+end
+
+
 
 
 function prepare_hourly_opf_data!(hourly_data, grid_data, demand_series, pv_series, wind_series, time_stamp)
@@ -255,4 +285,81 @@ function prepare_mn_opf_data!(opf_mn_data, grid_data, demand_series, pv_series, 
         end
     end
     return opf_mn_data
+end
+
+
+# Run hourly OPF calcuations
+function run_mn_opf(opf_data, hours, demand_series, pv_series, wind_series; formulation="DC", verbose = true)
+    hourly_data = deepcopy(opf_data)
+    # Create dictionaries for inspection of results
+    pf = Dict{String, Any}(["$hour" => zeros(1, maximum(parse.(Int, collect(keys(hourly_data["branch"]))))) for hour in hours])
+    pf_mw = Dict{String, Any}(["$hour" => zeros(length(opf_data["branch"])) for hour in hours])
+    pfdc = Dict{String, Any}(["$hour" => zeros(length(opf_data["branchdc"])) for hour in hours])
+    pcurt = Dict{String, Any}(["$hour" => zeros(1, maximum(parse.(Int, collect(keys(hourly_data["branch"]))))) for hour in hours])
+    pd = Dict{String, Any}(["$hour" => zeros(length(opf_data["load"])) for hour in hours])
+    pflex = Dict{String, Any}(["$hour" => zeros(length(opf_data["load"])) for hour in hours])
+    pgmax = Dict{String, Any}(["$hour" => zeros(length(opf_data["load"])) for hour in hours])
+    pg = Dict{String, Any}(["$hour" => zeros(length(opf_data["load"])) for hour in hours])
+    pf_tot = Dict{String, Any}(["$hour" => zeros(length(opf_data["branch"])) for hour in hours])
+    pc_tot = Dict{String, Any}(["$hour" => zeros(length(opf_data["convdc"])) for hour in hours])
+    branch_duals = Dict{String, Any}(["$hour" => zeros(length(opf_data["branch"])) for hour in hours])
+    bus_duals = Dict{String, Any}(["$hour" => zeros(length(opf_data["bus"])) for hour in hours])
+    bus_ids = []
+    branch_ids = []
+
+    for hour in hours
+        # Write hourly pv, wind and demand traces into opf data
+        prepare_hourly_opf_data!(hourly_data, opf_data, demand_series, pv_series, wind_series, hour)
+
+        # Solve OPF
+        if formulation == "AC"
+            opf_result = CbaOPF.solve_cbaopf(hourly_data, _PM.ACPPowerModel, ac_solver, setting = s)
+        elseif formulation == "LPAC"
+            opf_result = CbaOPF.solve_cbaopf(hourly_data, _PM.LPACCPowerModel, lpac_solver, setting = s)
+        elseif formulation == "SOC"
+            opf_result = CbaOPF.solve_cbaopf(hourly_data, _PM.SOCWRPowerModel, soc_solver, setting = s)
+        elseif formulation == "DC"
+            opf_result = CbaOPF.solve_cbaopf(hourly_data, _PM.DCPPowerModel, dc_solver, setting = s)
+        end
+        # calculate and print some more information based on results
+        if haskey(opf_result["solution"], "load")
+            pflex["$hour"] = [opf_result["solution"]["load"]["$l"]["pflex"] for l in sort(parse.(Int, collect(keys(opf_result["solution"]["load"]))))]
+            pd["$hour"] = [hourly_data["load"]["$l"]["pd"] for l in sort(parse.(Int, collect(keys(opf_result["solution"]["load"]))))]
+            pgmax["$hour"] = [hourly_data["gen"]["$g"]["pmax"] for g in sort(parse.(Int, collect(keys(opf_result["solution"]["gen"]))))]
+            for l in sort(collect(parse.(Int, keys(opf_result["solution"]["load"]))))
+                pcurt["$hour"][1, l] = opf_result["solution"]["load"]["$l"]["pcurt"] 
+            end
+            pcurt_tot = sum([opf_result["solution"]["load"]["$l"]["pcurt"] for l in sort(parse.(Int, collect(keys(opf_result["solution"]["load"]))))]) * hourly_data["baseMVA"]
+            for b in sort(collect(parse.(Int, keys(opf_result["solution"]["branch"]))))
+                pf["$hour"][1, b] = opf_result["solution"]["branch"]["$b"]["pf"] ./ hourly_data["branch"]["$b"]["rate_a"]
+            end
+            pf_mw["$hour"] = [opf_result["solution"]["branch"]["$b"]["pf"] for b in sort(collect(parse.(Int, keys(opf_result["solution"]["branch"]))))]
+            pf_tot["$hour"] = [opf_result["solution"]["branch"]["$b"]["pf"] + opf_result["solution"]["branch"]["$b"]["pt"] for b in sort(collect(parse.(Int, keys(opf_result["solution"]["branch"]))))]
+            pc_tot["$hour"] = [opf_result["solution"]["convdc"]["$c"]["pgrid"] + opf_result["solution"]["convdc"]["$c"]["pdc"] for c in sort(collect(parse.(Int, keys(opf_result["solution"]["convdc"]))))]
+            pfdc["$hour"] = [opf_result["solution"]["branchdc"]["$b"]["pf"] for b in sort(parse.(Int, collect(keys(opf_result["solution"]["branchdc"]))))] ./ [hourly_data["branchdc"]["$b"]["rateA"] for b in sort(parse.(Int, collect(keys(opf_result["solution"]["branchdc"]))))]
+            pg["$hour"] = [opf_result["solution"]["gen"]["$g"]["pg"] for g in sort(parse.(Int, collect(keys(opf_result["solution"]["gen"]))))]
+            branch_duals["$hour"] = [opf_result["solution"]["branch"]["$b"]["mu_sm_to"] for b in sort(collect(parse.(Int, keys(opf_result["solution"]["branch"]))))]
+            bus_duals["$hour"] = [opf_result["solution"]["bus"]["$b"]["lam_kcl_r"] for b in sort(collect(parse.(Int, keys(opf_result["solution"]["bus"]))))]
+        else
+            pcurt_tot = 0
+        end
+        if verbose
+            # calculate some charactersitics for result inspecttion
+            pd_max = sum([load["pd"] for (l, load) in opf_data["load"]]) * hourly_data["baseMVA"]
+            pg_max = sum([gen["pmax"] for (g, gen) in opf_data["gen"]]) * hourly_data["baseMVA"]
+            pdh_max = sum([load["pd"] for (l, load) in hourly_data["load"]]) * hourly_data["baseMVA"]
+            pgh_max = sum([gen["pmax"] for (g, gen) in hourly_data["gen"]]) * hourly_data["baseMVA"]
+            # print charactersiticss
+            print("Grid Data: Total demand = ", pd_max, " MW, Total generation = ", pg_max, " MW","\n")
+            print("Hour ", hour,": Total demand = ", pdh_max, " MW, Total generation = ", pgh_max, " MW","\n")
+            # Write out general information
+            print("Hour: ", hour, " -> ", opf_result["termination_status"], " in ", opf_result["solve_time"], " seconds.", "\n")
+            print("Total curtailed load = ", pcurt_tot, " MW, ", pcurt_tot / pdh_max * 100,"%", "\n")
+        end
+
+        bus_ids = sort(collect(parse.(Int, keys(opf_result["solution"]["bus"]))))
+        branch_ids = sort(collect(parse.(Int, keys(opf_result["solution"]["branch"]))))
+    end
+
+    return pf, pf_mw, pfdc, pcurt, pd, pflex, pgmax, pg, pf_tot, pc_tot, bus_duals, branch_duals, bus_ids, branch_ids
 end

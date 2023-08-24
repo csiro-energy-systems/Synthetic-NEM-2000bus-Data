@@ -55,118 +55,12 @@ ENV["GRB_LICENSE_FILE"]="/Users/hei06j/gurobi/gurobi.lic"
 # # Test case data
 # data_path_hvdc = "snem2000_ACDC.m"
 
-# function prepare_data(data_path; merge_parallel_lines = true, hvdc = true, no_bass = false,  no_terra = false,  no_murray = false)
-#     # Get grid data from the NEM 2000 bus model m-file 
-#     data = _PM.parse_file(data_path)
-#     # Assign buses to states
-#     add_area_dict!(data)
-
-#     if hvdc
-#         # Process data to fit into PMACDC model
-#         _PMACDC.process_additional_data!(data)
-#         # Delete DC lines which have been modelled as AC lines
-#         fix_hvdc_data_issues!(data, no_bass = no_bass, no_terra = no_terra, no_murray = no_murray)
-#     end
-
-#     # Extend data model with flexible demand, to be able to do demand shedding if required
-#     add_demand_data!(data)
-
-#     # Aggregate demand data per state to modulate with hourly traces
-#     # aggregate_demand_data!(data)
-
-#     # fix data issues, e.g. putting generation cost in € / pu:
-#     # fix_data!(data; hvdc = hvdc)
-
-#     if merge_parallel_lines
-#         merge_all_parallel_lines(data)
-#     end
-
-#     return data
-# end
-
-
 # opf_data = prepare_data(data_path_hvdc; merge_parallel_lines=true)
 
 # ##
 # # Select hours
 # # hours = select_hours(year, selection = selected_hours)
 # hours = selected_hours["hour_range"]
-
-# # Run hourly OPF calcuations
-# function run_mn_opf(opf_data, hours, demand_series, pv_series, wind_series; formulation="DC", verbose = true)
-#     hourly_data = deepcopy(opf_data)
-#     # Create dictionaries for inspection of results
-#     pf = Dict{String, Any}(["$hour" => zeros(1, maximum(parse.(Int, collect(keys(hourly_data["branch"]))))) for hour in hours])
-#     pf_mw = Dict{String, Any}(["$hour" => zeros(length(opf_data["branch"])) for hour in hours])
-#     pfdc = Dict{String, Any}(["$hour" => zeros(length(opf_data["branchdc"])) for hour in hours])
-#     pcurt = Dict{String, Any}(["$hour" => zeros(1, maximum(parse.(Int, collect(keys(hourly_data["branch"]))))) for hour in hours])
-#     pd = Dict{String, Any}(["$hour" => zeros(length(opf_data["load"])) for hour in hours])
-#     pflex = Dict{String, Any}(["$hour" => zeros(length(opf_data["load"])) for hour in hours])
-#     pgmax = Dict{String, Any}(["$hour" => zeros(length(opf_data["load"])) for hour in hours])
-#     pg = Dict{String, Any}(["$hour" => zeros(length(opf_data["load"])) for hour in hours])
-#     pf_tot = Dict{String, Any}(["$hour" => zeros(length(opf_data["branch"])) for hour in hours])
-#     pc_tot = Dict{String, Any}(["$hour" => zeros(length(opf_data["convdc"])) for hour in hours])
-#     branch_duals = Dict{String, Any}(["$hour" => zeros(length(opf_data["branch"])) for hour in hours])
-#     bus_duals = Dict{String, Any}(["$hour" => zeros(length(opf_data["bus"])) for hour in hours])
-#     bus_ids = []
-#     branch_ids = []
-
-#     for hour in hours
-#         # Write hourly pv, wind and demand traces into opf data
-#         prepare_hourly_opf_data!(hourly_data, opf_data, demand_series, pv_series, wind_series, hour)
-
-#         # Solve OPF
-#         if formulation == "AC"
-#             opf_result = CbaOPF.solve_cbaopf(hourly_data, _PM.ACPPowerModel, ac_solver, setting = s)
-#         elseif formulation == "LPAC"
-#             opf_result = CbaOPF.solve_cbaopf(hourly_data, _PM.LPACCPowerModel, lpac_solver, setting = s)
-#         elseif formulation == "SOC"
-#             opf_result = CbaOPF.solve_cbaopf(hourly_data, _PM.SOCWRPowerModel, soc_solver, setting = s)
-#         elseif formulation == "DC"
-#             opf_result = CbaOPF.solve_cbaopf(hourly_data, _PM.DCPPowerModel, dc_solver, setting = s)
-#         end
-#         # calculate and print some more information based on results
-#         if haskey(opf_result["solution"], "load")
-#             pflex["$hour"] = [opf_result["solution"]["load"]["$l"]["pflex"] for l in sort(parse.(Int, collect(keys(opf_result["solution"]["load"]))))]
-#             pd["$hour"] = [hourly_data["load"]["$l"]["pd"] for l in sort(parse.(Int, collect(keys(opf_result["solution"]["load"]))))]
-#             pgmax["$hour"] = [hourly_data["gen"]["$g"]["pmax"] for g in sort(parse.(Int, collect(keys(opf_result["solution"]["gen"]))))]
-#             for l in sort(collect(parse.(Int, keys(opf_result["solution"]["load"]))))
-#                 pcurt["$hour"][1, l] = opf_result["solution"]["load"]["$l"]["pcurt"] 
-#             end
-#             pcurt_tot = sum([opf_result["solution"]["load"]["$l"]["pcurt"] for l in sort(parse.(Int, collect(keys(opf_result["solution"]["load"]))))]) * hourly_data["baseMVA"]
-#             for b in sort(collect(parse.(Int, keys(opf_result["solution"]["branch"]))))
-#                 pf["$hour"][1, b] = opf_result["solution"]["branch"]["$b"]["pf"] ./ hourly_data["branch"]["$b"]["rate_a"]
-#             end
-#             pf_mw["$hour"] = [opf_result["solution"]["branch"]["$b"]["pf"] for b in sort(collect(parse.(Int, keys(opf_result["solution"]["branch"]))))]
-#             pf_tot["$hour"] = [opf_result["solution"]["branch"]["$b"]["pf"] + opf_result["solution"]["branch"]["$b"]["pt"] for b in sort(collect(parse.(Int, keys(opf_result["solution"]["branch"]))))]
-#             pc_tot["$hour"] = [opf_result["solution"]["convdc"]["$c"]["pgrid"] + opf_result["solution"]["convdc"]["$c"]["pdc"] for c in sort(collect(parse.(Int, keys(opf_result["solution"]["convdc"]))))]
-#             pfdc["$hour"] = [opf_result["solution"]["branchdc"]["$b"]["pf"] for b in sort(parse.(Int, collect(keys(opf_result["solution"]["branchdc"]))))] ./ [hourly_data["branchdc"]["$b"]["rateA"] for b in sort(parse.(Int, collect(keys(opf_result["solution"]["branchdc"]))))]
-#             pg["$hour"] = [opf_result["solution"]["gen"]["$g"]["pg"] for g in sort(parse.(Int, collect(keys(opf_result["solution"]["gen"]))))]
-#             branch_duals["$hour"] = [opf_result["solution"]["branch"]["$b"]["mu_sm_to"] for b in sort(collect(parse.(Int, keys(opf_result["solution"]["branch"]))))]
-#             bus_duals["$hour"] = [opf_result["solution"]["bus"]["$b"]["lam_kcl_r"] for b in sort(collect(parse.(Int, keys(opf_result["solution"]["bus"]))))]
-#         else
-#             pcurt_tot = 0
-#         end
-#         if verbose
-#             # calculate some charactersitics for result inspecttion
-#             pd_max = sum([load["pd"] for (l, load) in opf_data["load"]]) * hourly_data["baseMVA"]
-#             pg_max = sum([gen["pmax"] for (g, gen) in opf_data["gen"]]) * hourly_data["baseMVA"]
-#             pdh_max = sum([load["pd"] for (l, load) in hourly_data["load"]]) * hourly_data["baseMVA"]
-#             pgh_max = sum([gen["pmax"] for (g, gen) in hourly_data["gen"]]) * hourly_data["baseMVA"]
-#             # print charactersiticss
-#             print("Grid Data: Total demand = ", pd_max, " MW, Total generation = ", pg_max, " MW","\n")
-#             print("Hour ", hour,": Total demand = ", pdh_max, " MW, Total generation = ", pgh_max, " MW","\n")
-#             # Write out general information
-#             print("Hour: ", hour, " -> ", opf_result["termination_status"], " in ", opf_result["solve_time"], " seconds.", "\n")
-#             print("Total curtailed load = ", pcurt_tot, " MW, ", pcurt_tot / pdh_max * 100,"%", "\n")
-#         end
-
-#         bus_ids = sort(collect(parse.(Int, keys(opf_result["solution"]["bus"]))))
-#         branch_ids = sort(collect(parse.(Int, keys(opf_result["solution"]["branch"]))))
-#     end
-
-#     return pf, pf_mw, pfdc, pcurt, pd, pflex, pgmax, pg, pf_tot, pc_tot, bus_duals, branch_duals, bus_ids, branch_ids
-# end
 
 # pf, pf_mw, pfdc, pcurt, pd, pflex, pgmax, pg, pf_tot, pc_tot, bus_duals, branch_duals, bus_ids, branch_ids = run_mn_opf(opf_data, hours, demand_series, pv_series, wind_series; formulation="DC", verbose = false);
 
@@ -201,9 +95,9 @@ ENV["GRB_LICENSE_FILE"]="/Users/hei06j/gurobi/gurobi.lic"
 # sorted_buses = sort(sensitive_buses, by=x->x[3]/maximum([abs(x[3]),abs(x[4])]) + x[4]/maximum([abs(x[3]),abs(x[4])]))
 
 ##
-""" 
-Transmission line expansion cost: OHL: 1 m$/km for double circuit OHL 400 kV; lifetime: 60 years -> 1E6/60 per km per year -> 1E6/60/365 per km per day
-"""
+# """ 
+# Transmission line expansion cost: OHL: 1 m$/km for double circuit OHL 400 kV; lifetime: 60 years -> 1E6/60 per km per year -> 1E6/60/365 per km per day
+# """
 
 data_file_tnep = "snem2000_tnep.m"
 tnep_data = prepare_data(data_file_tnep; merge_parallel_lines = false, hvdc = false)
@@ -219,7 +113,7 @@ for (i, gen) in tnep_data["gen"]
 end
 
 ##
-hours = 96
+hours = 144
 
 if hours > 1
     tnep_mn_data = _PM.replicate(tnep_data, hours)
@@ -239,18 +133,18 @@ else
 end
 
 ## Plots
-mkdir("./Scripts/PowerModels_TransmissionNetworkExpansionPlanning/Figures")
+mkdir("./Scripts/PowerModels_tnep/Figures")
 
-buses_NSW_xy = [(bus["x"], bus["y"]) for (i, bus) in opf_data["bus"] if bus["area"]==1 && haskey(bus, "x")]
-buses_Vic_xy = [(bus["x"], bus["y"]) for (i, bus) in opf_data["bus"] if bus["area"]==2 && haskey(bus, "x")]
-buses_QLD_xy = [(bus["x"], bus["y"]) for (i, bus) in opf_data["bus"] if bus["area"]==3 && haskey(bus, "x")]
-buses_SA_xy  = [(bus["x"], bus["y"]) for (i, bus) in opf_data["bus"] if bus["area"]==4 && haskey(bus, "x")]
-buses_TAS_xy = [(bus["x"], bus["y"]) for (i, bus) in opf_data["bus"] if bus["area"]==5 && haskey(bus, "x")]
+buses_NSW_xy = [(bus["x"], bus["y"]) for (i, bus) in tnep_data["bus"] if bus["area"]==1 && haskey(bus, "x")]
+buses_Vic_xy = [(bus["x"], bus["y"]) for (i, bus) in tnep_data["bus"] if bus["area"]==2 && haskey(bus, "x")]
+buses_QLD_xy = [(bus["x"], bus["y"]) for (i, bus) in tnep_data["bus"] if bus["area"]==3 && haskey(bus, "x")]
+buses_SA_xy  = [(bus["x"], bus["y"]) for (i, bus) in tnep_data["bus"] if bus["area"]==4 && haskey(bus, "x")]
+buses_TAS_xy = [(bus["x"], bus["y"]) for (i, bus) in tnep_data["bus"] if bus["area"]==5 && haskey(bus, "x")]
 
 sorted_bus_ids = [758, 93, 135, 10004, 807, 10005, 119, 1566, 844, 1557, 1569, 1570, 1742, 1745, 1764, 1523]
-bus_iaxy = [(i, opf_data["bus"]["$i"]["area"], opf_data["bus"]["$i"]["base_kv"], opf_data["bus"]["$i"]["x"], opf_data["bus"]["$i"]["y"]) for i in sorted_bus_ids]
-bus_ixy = [(i, opf_data["bus"]["$i"]["x"], opf_data["bus"]["$i"]["y"]) for i in sorted_bus_ids]
-bus_xy = [(opf_data["bus"]["$i"]["x"], opf_data["bus"]["$i"]["y"]) for i in sorted_bus_ids]
+bus_iaxy = [(i, tnep_data["bus"]["$i"]["area"], tnep_data["bus"]["$i"]["base_kv"], tnep_data["bus"]["$i"]["x"], tnep_data["bus"]["$i"]["y"]) for i in sorted_bus_ids]
+bus_ixy = [(i, tnep_data["bus"]["$i"]["x"], tnep_data["bus"]["$i"]["y"]) for i in sorted_bus_ids]
+bus_xy = [(tnep_data["bus"]["$i"]["x"], tnep_data["bus"]["$i"]["y"]) for i in sorted_bus_ids]
 
 # plotlyjs()
 map_buses = Plots.scatter(buses_NSW_xy, color=1, label="NSW")
@@ -259,7 +153,7 @@ Plots.scatter!(buses_QLD_xy, color=3, label="QLD")
 Plots.scatter!(buses_SA_xy, color=4, label="SA")
 Plots.scatter!(buses_TAS_xy, color=5, label="TAS")
 Plots.scatter!(bus_xy, color=:black, label="Candidate buses", xticks=false, yticks=false)
-# Plots.savefig(map_buses, "Figures/map_buses.pdf")
+Plots.savefig(map_buses, "./Scripts/PowerModels_tnep/Figures/map_buses.pdf")
 
 for (i, ne_branch) in tnep_data["ne_branch"]
     ft_bus_x = [tnep_data["bus"]["$(ne_branch["f_bus"])"]["x"], tnep_data["bus"]["$(ne_branch["t_bus"])"]["x"]]
@@ -271,7 +165,7 @@ for (i, ne_branch) in tnep_data["ne_branch"]
     end
 end
 map_buses
-# Plots.savefig(map_buses, "Figures/map_buses_branches.pdf")
+Plots.savefig(map_buses, "./Scripts/PowerModels_tnep/Figures/map_buses_branches.pdf")
 
 
 # plotlyjs()
@@ -293,7 +187,32 @@ for (i, ne_branch) in tnep_data["ne_branch"]
     end
 end
 map_buses_built_lines
-# Plots.savefig(map_buses_built_lines, "Figures/map_buses_branches_built.pdf")
+Plots.savefig(map_buses_built_lines, "./Scripts/PowerModels_tnep/Figures/map_buses_branches_built.pdf")
+
+
+[ne_branch["built"] for (n, ne_branch) in result["solution"]["nw"]["1"]["ne_branch"]]
+ne1 = [nw["ne_branch"]["1"]["pf"] for (n, nw) in result["solution"]["nw"]] .* tnep_data["baseMVA"]
+ne2 = [nw["ne_branch"]["2"]["pf"] for (n, nw) in result["solution"]["nw"]] .* tnep_data["baseMVA"]
+ne3 = [nw["ne_branch"]["3"]["pf"] for (n, nw) in result["solution"]["nw"]] .* tnep_data["baseMVA"]
+ne4 = [nw["ne_branch"]["4"]["pf"] for (n, nw) in result["solution"]["nw"]] .* tnep_data["baseMVA"]
+ne5 = [nw["ne_branch"]["5"]["pf"] for (n, nw) in result["solution"]["nw"]] .* tnep_data["baseMVA"]
+ne6 = [nw["ne_branch"]["6"]["pf"] for (n, nw) in result["solution"]["nw"]] .* tnep_data["baseMVA"]
+ne7 = [nw["ne_branch"]["7"]["pf"] for (n, nw) in result["solution"]["nw"]] .* tnep_data["baseMVA"]
+ne8 = [nw["ne_branch"]["8"]["pf"] for (n, nw) in result["solution"]["nw"]] .* tnep_data["baseMVA"]
+ne9 = [nw["ne_branch"]["9"]["pf"] for (n, nw) in result["solution"]["nw"]] .* tnep_data["baseMVA"]
+ne_plot = Plots.scatter(ne1, label="NSW-NSW 1")
+Plots.scatter!(ne2, label="NSW-NSW 2")
+Plots.scatter!(ne3, label="QLD-QLD 1", color=8)
+Plots.scatter!(ne4, label="QLD-QLD 2")
+Plots.scatter!(ne5, label="NSW-VIC 1")
+Plots.scatter!(ne6, label="NSW-VIC 2")
+Plots.scatter!(ne7, label="NSW-QLD")
+Plots.scatter!(ne8, label="NSW-SA", color=3)
+Plots.scatter!(ne9, label="VIC-SA")
+xlabel!("Time (Hour)")
+ylabel!("Power (MVA)")
+title!("Power Transfer Across Candidate Lines")
+Plots.savefig(ne_plot, "./Scripts/PowerModels_tnep/Figures/Network_expansion.pdf")
 
 
 ##
@@ -305,7 +224,7 @@ Plots.plot!(pv_series[!,"TAS"][1:48], label="TAS", linewidth=2)
 xlabel!("Average day")
 ylabel!("Ratio")
 title!("PV Average Ratio per State")
-# Plots.savefig(pv_average, "Figures/pv_series_average.pdf")
+# Plots.savefig(pv_average, "./Scripts/PowerModels_tnep/Figures/pv_series_average.pdf")
 
 
 wind_average = Plots.plot(wind_series[!,"NSW"][1:48], label="NSW", linewidth=2)
@@ -316,7 +235,7 @@ Plots.plot!(wind_series[!,"TAS"][1:48], label="TAS", linewidth=2, legend=:top)
 xlabel!("Average day")
 ylabel!("Ratio")
 title!("Wind Average Ratio per State")
-# Plots.savefig(wind_average, "Figures/wind_series_average.pdf")
+# Plots.savefig(wind_average, "./Scripts/PowerModels_tnep/Figures/wind_series_average.pdf")
 
 demand_average = Plots.plot(demand_series[!,"NSW"][1:48], label="NSW", linewidth=2)
 Plots.plot!(demand_series[!,"VIC"][1:48], label="VIC", linewidth=2)
@@ -326,5 +245,5 @@ Plots.plot!(demand_series[!,"TAS"][1:48], label="TAS", linewidth=2)
 xlabel!("Average day")
 ylabel!("Ratio")
 title!("Demand Average Ratio per State")
-# Plots.savefig(demand_average, "Figures/demand_series_average.pdf")
+# Plots.savefig(demand_average, "./Scripts/PowerModels_tnep/Figures/demand_series_average.pdf")
 
