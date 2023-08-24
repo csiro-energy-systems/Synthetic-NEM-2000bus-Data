@@ -2,7 +2,7 @@
 
 julia_version = "1.9.1"
 manifest_format = "2.0"
-project_hash = "8ddf9cc1413cb12283e0b9cab2257524ffa2eaa8"
+project_hash = "1299f87b924d6a384ac1a2866d67dd776c0b9289"
 
 [[deps.ASL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -385,7 +385,7 @@ uuid = "28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71"
 version = "0.72.9"
 
 [[deps.GR_jll]]
-deps = ["Artifacts", "Bzip2_jll", "Cairo_jll", "FFMPEG_jll", "Fontconfig_jll", "GLFW_jll", "JLLWrappers", "JpegTurbo_jll", "Libdl", "Libtiff_jll", "Pixman_jll", "Qt6Base_jll", "Zlib_jll", "libpng_jll"]
+deps = ["Artifacts", "Bzip2_jll", "Cairo_jll", "FFMPEG_jll", "Fontconfig_jll", "FreeType2_jll", "GLFW_jll", "JLLWrappers", "JpegTurbo_jll", "Libdl", "Libtiff_jll", "Pixman_jll", "Qt6Base_jll", "Zlib_jll", "libpng_jll"]
 git-tree-sha1 = "f61f768bf090d97c532d24b64e07b237e9bb7b6b"
 uuid = "d2c73de3-f751-5644-a686-071e5b155ba9"
 version = "0.72.9+0"
@@ -988,6 +988,18 @@ deps = ["InfrastructureModels", "JuMP", "Memento", "PowerModels"]
 git-tree-sha1 = "09987719554eb416d688230967f62364a70ccf5b"
 uuid = "ff45984e-d068-5f4c-9e32-c4133509d236"
 version = "0.6.3"
+
+[[deps.PowerModelsACDCsecurityconstrained]]
+deps = ["InfrastructureModels", "Ipopt", "JuMP", "LinearAlgebra", "Memento", "Plots", "PowerModels", "PowerModelsACDC", "PowerModelsSecurityConstrained"]
+path = "/Users/hei06j/Documents/repositories/remote/PowerModelsACDCsecurityconstrained.jl"
+uuid = "5d0f5a79-9f2f-40e8-8d30-bf020fc1f547"
+version = "0.1.0"
+
+[[deps.PowerModelsSecurityConstrained]]
+deps = ["Distributed", "InfrastructureModels", "JSON", "JuMP", "Memento", "PowerModels", "SparseArrays", "Statistics"]
+git-tree-sha1 = "ed095532d94f2b57ac163e471f831f7d459995b9"
+uuid = "53333297-f92c-5019-980b-942fc744b407"
+version = "0.10.0"
 
 [[deps.PowerNetworkMatrices]]
 deps = ["DocStringExtensions", "HDF5", "InfrastructureSystems", "KLU", "LinearAlgebra", "Pardiso", "PowerSystems", "SparseArrays"]
