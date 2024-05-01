@@ -10,6 +10,9 @@ This repository contains the Matpower files of a synthetic network model for Nat
 The data set development algorithm and technical report can be found at https://arxiv.org/abs/2306.08176,
 with CSIRO Data Access Portal release at https://doi.org/10.25919/esxz-q276. The network data are also available at https://github.com/power-grid-lib/pglib-opf/releases/tag/v23.07.
 
+## Webinar
+A webinar presenting the model and proof-of-concept studies is availabel at https://www.youtube.com/watch?v=v2BG1t8fdts&ab_channel=RahmatHeidari
+
 
 ## MatPower
 MATPOWER solves the cases using either IPOPT or Artelys Knitro with the default parameters.
@@ -39,6 +42,9 @@ This data is licensed under CC-BY (https://creativecommons.org/licenses/by/4.0/)
 - Hakan Ergun
 - Matthew Amos
 - Frederik Geth
+
+## Citation
+R. Heidari, M. Amos and F. Geth, "An Open Optimal Power Flow Model for the Australian National Electricity Market," 2023 IEEE PES Innovative Smart Grid Technologies - Asia (ISGT Asia), Auckland, New Zealand, 2023, pp. 1-5, doi: 10.1109/ISGTAsia54891.2023.10372618.
 
 ## Acknowledgement
 We express our gratitude to Dr. Felipe Arraño-Vargas and Dr. Georgios Konstantinou who released the original data used in this study, and for their ongoing support and advice on gaining insights from the data. The original S-NEM2300bus benchmark data and sotftware are licensed under BSD https://opensource.org/license/BSD-3-clause/ and as part of the following work:
