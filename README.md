@@ -40,6 +40,10 @@ This data is licensed under CC-BY (https://creativecommons.org/licenses/by/4.0/)
 - Matthew Amos
 - Frederik Geth
 
+## Citation
+R. Heidari, M. Amos and F. Geth, "An Open Optimal Power Flow Model for the Australian National Electricity Market," 2023 IEEE PES Innovative Smart Grid Technologies - Asia (ISGT Asia), Auckland, New Zealand, 2023, pp. 1-5, doi: 10.1109/ISGTAsia54891.2023.10372618.
+keywords: {Nanoelectromechanical systems;Asia;Benchmark testing;Electricity supply industry;Data models;Power systems;Smart grids;Optimal power flow;generation cost model;transmission network dataset;open data},
+
 ## Acknowledgement
 We express our gratitude to Dr. Felipe Arraño-Vargas and Dr. Georgios Konstantinou who released the original data used in this study, and for their ongoing support and advice on gaining insights from the data. The original S-NEM2300bus benchmark data and sotftware are licensed under BSD https://opensource.org/license/BSD-3-clause/ and as part of the following work:
 - F. Arraño-Vargas and G. Konstantinou, "Modular Design and Real-Time Simulators Toward Power System Digital Twins Implementation," 
