@@ -66,16 +66,16 @@ function build_snem2000_bus_matpower_RT(file_path; kwargs...)
         for (ix, l) in enumerate(PSY.get_components(PSY.RenewableGen, sys))
             forecast_data = SortedDict{Dates.DateTime, TimeSeries.TimeArray}()
             for t in 1:2
-                if l.prime_mover.value == 21      # Solar
+                if l.prime_mover_type.value == 21      # Solar
                     ta = solar_timeseries_DA[t][1]
-                elseif l.prime_mover.value == 22  # Wind
+                elseif l.prime_mover_type.value == 22  # Wind
                     ta = wind_timeseries_DA[t][1]
                 end
                 for i in 1:length(ta)
                     ini_time = timestamp(ta[i])
-                    if l.prime_mover.value == 21      # Solar
+                    if l.prime_mover_type.value == 21      # Solar
                         data = when(solar_timeseries_RT[t][1], hour, hour(ini_time[1]))
-                    elseif l.prime_mover.value == 22  # Wind
+                    elseif l.prime_mover_type.value == 22  # Wind
                         data = when(wind_timeseries_RT[t][1], hour, hour(ini_time[1]))
                     end
                     forecast_data[ini_time[1]] = data
@@ -178,11 +178,11 @@ function build_snem2000_bus_matpower_DA(file_path; kwargs...)
         for (ix, l) in enumerate(PSY.get_components(PSY.RenewableGen, sys))
             forecast_data = SortedDict{Dates.DateTime, TimeSeries.TimeArray}()
             for t in 1:2
-                if l.prime_mover.value == 21 
+                if l.prime_mover_type.value == 21 
                     ini_time = timestamp(solar_timeseries_DA[t][1])[1]
                     forecast_data[ini_time] = solar_timeseries_DA[t][1]
                     # ta = solar_timeseries_DA[t][1]
-                elseif l.prime_mover.value == 22  # Wind
+                elseif l.prime_mover_type.value == 22  # Wind
                     ini_time = timestamp(wind_timeseries_DA[t][1])[1]
                     forecast_data[ini_time] = wind_timeseries_DA[t][1]
                     # ta = wind_timeseries_DA[t][1]
