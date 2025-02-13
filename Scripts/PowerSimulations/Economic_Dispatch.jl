@@ -1,6 +1,7 @@
 # using Pkg
 using PowerSystems
 using PowerSimulations
+using HydroPowerSimulations
 using PowerSystemCaseBuilder
 using PowerNetworkMatrices
 using PowerGraphics
@@ -68,7 +69,7 @@ flow_duals = innerjoin(flow_duals, flow_duals2, on = :DateTime)
 
 μ = Matrix(flow_duals[:, PTDF_matrix.axes[2]])
 LMP = flow_duals[:, [:DateTime]]
-for bus in get_components(Bus, sys_da)
+for bus in get_components(Bus, sys_rt)
     bus_index = findall(x->x==get_number(bus), PTDF_matrix.axes[1])
     LMP[:, get_name(bus)] = λ .+ μ * PTDF_matrix[:, bus_index[1]]
 end
