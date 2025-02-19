@@ -1,6 +1,7 @@
 # using Pkg
 using PowerSystems
 using PowerSimulations
+using HydroPowerSimulations
 using PowerSystemCaseBuilder
 using PowerNetworkMatrices
 using PowerGraphics
@@ -35,13 +36,13 @@ sys_da = build_snem2000_bus_matpower_DA(file_path)
 ##
 PTDF_matrix = PNM.PTDF(sys_da) # linear_solver="KLU"
 template_uc = ProblemTemplate()
-set_network_model!(template_uc, PSI.NetworkModel(StandardPTDFModel, PTDF_matrix=PTDF_matrix, duals=[CopperPlateBalanceConstraint], use_slacks=true))
+set_network_model!(template_uc, PSI.NetworkModel(PTDFPowerModel, PTDF_matrix=PTDF_matrix, duals=[CopperPlateBalanceConstraint], use_slacks=true))
 set_device_model!(template_uc, Line, StaticBranch) # StaticBranchUnbounded
 set_device_model!(template_uc, TapTransformer, StaticBranch)
 set_device_model!(template_uc, Transformer2W, StaticBranch)
 set_device_model!(template_uc, RenewableDispatch, RenewableFullDispatch)
 set_device_model!(template_uc, ThermalStandard, ThermalStandardUnitCommitment)
-set_device_model!(template_uc, HydroDispatch, HydroCommitmentRunOfRiver)
+set_device_model!(template_uc, HydroDispatch, HydroDispatchRunOfRiver)
 set_device_model!(template_uc, PowerLoad, StaticPowerLoad)
 for (k, v) in template_uc.branches
     v.duals = [NetworkFlowConstraint]
@@ -52,12 +53,12 @@ end
 # solver = optimizer_with_attributes(Juniper.Optimizer, "nl_solver"=>nl_solver)
 # solver = optimizer_with_attributes(SCIP.Optimizer)
 solver = optimizer_with_attributes(HiGHS.Optimizer)#, "mip_rel_gap" => 0.5)
-problem = DecisionModel(template_uc, sys_da; optimizer = solver, horizon = 24)
+problem = DecisionModel(template_uc, sys_da; optimizer = solver, horizon = Hour(24))
 build!(problem, output_dir = mktempdir())
 solve!(problem)
 
 ##
-res = ProblemResults(problem)
+res = OptimizationProblemResults(problem)
 
 plot_demand(res)
 plot_fuel(res)

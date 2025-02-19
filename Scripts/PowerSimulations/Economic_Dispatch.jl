@@ -1,6 +1,7 @@
 # using Pkg
 using PowerSystems
 using PowerSimulations
+using HydroPowerSimulations
 using PowerSystemCaseBuilder
 using PowerNetworkMatrices
 using PowerGraphics
@@ -33,7 +34,7 @@ sys_rt = build_snem2000_bus_matpower_RT(file_path)
 ##
 PTDF_matrix = PNM.PTDF(sys_rt) # linear_solver="KLU"
 template_ed = ProblemTemplate()
-set_network_model!(template_ed, PSI.NetworkModel(StandardPTDFModel, PTDF_matrix=PTDF_matrix, duals=[CopperPlateBalanceConstraint], use_slacks=true))
+set_network_model!(template_ed, PSI.NetworkModel(PTDFPowerModel, PTDF_matrix=PTDF_matrix, duals=[CopperPlateBalanceConstraint], use_slacks=true))
 set_device_model!(template_ed, Line, StaticBranch) # StaticBranchUnbounded
 set_device_model!(template_ed, TapTransformer, StaticBranch)
 set_device_model!(template_ed, Transformer2W, StaticBranch)
@@ -47,12 +48,12 @@ end
 
 ##
 solver = optimizer_with_attributes(HiGHS.Optimizer) # , "mip_rel_gap" => 0.5)
-problem = DecisionModel(template_ed, sys_rt; optimizer = solver, horizon = 12)
+problem = DecisionModel(template_ed, sys_rt; optimizer = solver, horizon = Hour(1))
 build!(problem, output_dir = mktempdir())
 solve!(problem)
 
 ##
-res = ProblemResults(problem)
+res = OptimizationProblemResults(problem)
 
 plot_demand(res)
 plot_fuel(res)
@@ -68,7 +69,7 @@ flow_duals = innerjoin(flow_duals, flow_duals2, on = :DateTime)
 
 μ = Matrix(flow_duals[:, PTDF_matrix.axes[2]])
 LMP = flow_duals[:, [:DateTime]]
-for bus in get_components(Bus, sys_da)
+for bus in get_components(Bus, sys_rt)
     bus_index = findall(x->x==get_number(bus), PTDF_matrix.axes[1])
     LMP[:, get_name(bus)] = λ .+ μ * PTDF_matrix[:, bus_index[1]]
 end
