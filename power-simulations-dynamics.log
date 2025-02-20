@@ -1,0 +1,45 @@
+┌ Info: 2025-02-20T13:38:28.382 [95086:1]: Pre-Initializing Simulation States
+└ @ PowerSimulationsDynamics /Users/hei06j/.julia/packages/PowerSimulationsDynamics/Uuoub/src/base/simulation.jl:265
+┌ Info: 2025-02-20T13:38:28.382 [95086:1]: Unit System changed to UnitSystem.SYSTEM_BASE = 0
+└ @ PowerSystems /Users/hei06j/.julia/packages/PowerSystems/xh3fM/src/base.jl:395
+┌ Info: 2025-02-20T13:38:28.392 [95086:1]: PowerFlow solve converged, the results have been stored in the system
+└ @ PowerFlows /Users/hei06j/.julia/packages/PowerFlows/6nw6s/src/nlsolve_ac_powerflow.jl:47
+┌ Info: 2025-02-20T13:38:28.392 [95086:1]: Unit System changed to UnitSystem.DEVICE_BASE = 1
+└ @ PowerSystems /Users/hei06j/.julia/packages/PowerSystems/xh3fM/src/base.jl:395
+┌ Info: 2025-02-20T13:38:31.226 [95086:1]: Residual from initial guess: max = 1.8623883689538196e-8 at 1903, total = 5.538957095606099e-8
+└ @ PowerSimulationsDynamics /Users/hei06j/.julia/packages/PowerSimulationsDynamics/Uuoub/src/base/nlsolve_wrapper.jl:101
+┌ Warning: 2025-02-20T13:38:52.789 [95086:1]: Initialization non-linear solve convergence failed, initial conditions do not meet conditions for an stable equilibrium.
+│ Attempting again with reduced numeric tolerance and using another solver
+└ @ PowerSimulationsDynamics /Users/hei06j/.julia/packages/PowerSimulationsDynamics/Uuoub/src/base/nlsolve_wrapper.jl:72
+┌ Info: 2025-02-20T13:38:53.008 [95086:1]: Initialization non-linear solve succeeded with a tolerance of 1.0e-9 using solver newton. Saving solution.
+└ @ PowerSimulationsDynamics /Users/hei06j/.julia/packages/PowerSimulationsDynamics/Uuoub/src/base/nlsolve_wrapper.jl:68
+┌ Info: 2025-02-20T13:38:53.008 [95086:1]: Attaching Perturbations
+└ @ PowerSimulationsDynamics /Users/hei06j/.julia/packages/PowerSimulationsDynamics/Uuoub/src/base/simulation.jl:296
+┌ Info: 2025-02-20T13:38:53.334 [95086:1]: Simulations status = BUILT
+└ @ PowerSimulationsDynamics /Users/hei06j/.julia/packages/PowerSimulationsDynamics/Uuoub/src/base/simulation.jl:428
+┌ Info: 2025-02-20T13:38:53.334 [95086:1]: 
+│ ──────────────────────────────────────────────────────────────────────────────────────
+│                                                            Time          Allocations  
+│                                                      ───────────────   ───────────────
+│                    Total measured:                        25.0s            5.69GiB    
+│ 
+│ Section                                      ncalls     time    %tot     alloc    %tot
+│ ──────────────────────────────────────────────────────────────────────────────────────
+│ Build Simulation                                  1    25.0s  100.0%   5.69GiB  100.0%
+│   Build Simulation Inputs                         1   7.38ms    0.0%   31.1MiB    0.5%
+│     Wrap Branches                                 1   10.7μs    0.0%      208B    0.0%
+│     Wrap Dynamic Injectors                        1    752μs    0.0%    737KiB    0.0%
+│     Calculate MM, DAE_vector, Total Shunts        1   2.20ms    0.0%   13.5MiB    0.2%
+│     Wrap Static Injectors                         1    433μs    0.0%    456KiB    0.0%
+│   Pre-initialization                              1   11.2ms    0.0%   11.4MiB    0.2%
+│     Power Flow solution                           1   10.2ms    0.0%   10.3MiB    0.2%
+│     Initialize Static Injectors                   1   66.0μs    0.0%   31.6KiB    0.0%
+│     Initialize Dynamic Injectors                  1    776μs    0.0%   1.04MiB    0.0%
+│   Calculate Jacobian                              1    2.22s    8.9%    496MiB    8.5%
+│   Make Model Function                             1   2.78ms    0.0%    144KiB    0.0%
+│   Initial Condition NLsolve refinement            1    22.4s   89.7%   5.13GiB   90.1%
+│   Build Perturbations                             1   76.1ms    0.3%   17.3MiB    0.3%
+│   Make DiffEq Problem                             1    250ms    1.0%   19.2MiB    0.3%
+│ ──────────────────────────────────────────────────────────────────────────────────────
+│ 
+└ @ PowerSimulationsDynamics /Users/hei06j/.julia/packages/PowerSimulationsDynamics/Uuoub/src/base/simulation.jl:453

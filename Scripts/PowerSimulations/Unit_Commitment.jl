@@ -26,7 +26,8 @@ const PNM = PowerNetworkMatrices
 
 ## build the system and add timeseries data
 include("./Descripter.jl")
-include("./Timeseries_data.jl")
+# include("./Timeseries_data.jl")
+include("./Timeseries_data_week.jl")
 
 file_path  = "snem2000.m"
 sys_da = build_snem2000_bus_matpower_DA(file_path)
@@ -60,8 +61,13 @@ solve!(problem)
 ##
 res = OptimizationProblemResults(problem)
 
-plot_demand(res)
-plot_fuel(res)
+plot_folder = "./plots"
+mkpath(plot_folder)
+plt_demand = plot_demand(res)
+Plots.savefig(plt_demand, plot_folder*"/demand.pdf")
+
+plt_fuel = plot_fuel(res)
+Plots.savefig(plt_fuel, plot_folder*"/fuel.pdf")
 
 duals = Dict([k => read_dual(res, k) for k in list_dual_keys(res) if PSI.get_entry_type(k) == NetworkFlowConstraint])
 λ = read_dual(res, "CopperPlateBalanceConstraint__System")[:, 2]
@@ -96,12 +102,19 @@ prices = read_dual(res, "CopperPlateBalanceConstraint__System")
 ##
 # plotlyjs() # loads the plotlyjs backend
 plot_dataframe(LMP, timestamps)
-plot_dataframe(variable_thermal_power, timestamps; stack = true)
-plot_dataframe(variable_renewable_power, timestamps; stack = true)
-plot_dataframe(variable_hydro_power, timestamps; stack = true)
-plot_dataframe(variable_line_flows, timestamps; stack = true)
-plot_dataframe(variable_thermal_on, timestamps; stack = true)
-plot_dataframe(variable_thermal_start, timestamps; stack = true)
-plot_dataframe(variable_thermal_stop, timestamps; stack = true)
+plt_thermal_gens = plot_dataframe(variable_thermal_power, timestamps; stack = true)
+plt_renewables = plot_dataframe(variable_renewable_power, timestamps; stack = true)
+plt_hydro_power = plot_dataframe(variable_hydro_power, timestamps; stack = true)
+plt_line_flows = plot_dataframe(variable_line_flows, timestamps; stack = false, legend=false)
+plt_thermal_gens_on = plot_dataframe(variable_thermal_on, timestamps; stack = true)
+plt_thermal_gens_start = plot_dataframe(variable_thermal_start, timestamps; stack = true)
+plt_thermal_gens_stop = plot_dataframe(variable_thermal_stop, timestamps; stack = true)
 
 
+Plots.savefig(plt_thermal_gens, plot_folder*"/plt_thermal_gens.pdf")
+Plots.savefig(plt_renewables, plot_folder*"/plt_renewables.pdf")
+Plots.savefig(plt_hydro_power, plot_folder*"/plt_hydro_power.pdf")
+Plots.savefig(plt_line_flows, plot_folder*"/plt_line_flows.pdf")
+Plots.savefig(plt_thermal_gens_on, plot_folder*"/plt_thermal_gens_on.pdf")
+Plots.savefig(plt_thermal_gens_start, plot_folder*"/plt_thermal_gens_start.pdf")
+Plots.savefig(plt_thermal_gens_stop, plot_folder*"/plt_thermal_gens_stop.pdf")
