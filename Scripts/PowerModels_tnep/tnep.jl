@@ -41,58 +41,58 @@ dc_solver =  JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0,
 lpac_solver =  JuMP.optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag" => 0)
 soc_solver =  JuMP.optimizer_with_attributes(Ipopt.Optimizer, "max_iter" => 1000, "print_level" => 0)
 
-ENV["GUROBI_HOME"]="/Library/gurobi902/mac64"
-ENV["GRB_LICENSE_FILE"]="/Users/hei06j/gurobi/gurobi.lic"
+ENV["GUROBI_HOME"]="/Library/gurobi1103/macos_universal2"
+ENV["GRB_LICENSE_FILE"]="/Users/hei06j/gurobi/gurobi_11.lic"
 ############ END INPUT SECTION ##############################
 #############################################################
 
 
 #############################################################
 #################### START METHODOLOGY ######################
-# ### Optimisation settings for CbaOPF.jl
-# s = Dict("output" => Dict("branch_flows" => true, "duals" => true), "conv_losses_mp" => true)
+### Optimisation settings for CbaOPF.jl
+s = Dict("output" => Dict("branch_flows" => true, "duals" => true), "conv_losses_mp" => true)
 
-# # Test case data
-# data_path_hvdc = "snem2000_ACDC.m"
+# Test case data
+data_path_hvdc = "snem2000_ACDC.m"
 
-# opf_data = prepare_data(data_path_hvdc; merge_parallel_lines=true)
+opf_data = prepare_data(data_path_hvdc; merge_parallel_lines=true)
 
-# ##
-# # Select hours
-# # hours = select_hours(year, selection = selected_hours)
-# hours = selected_hours["hour_range"]
+##
+# Select hours
+# hours = select_hours(year, selection = selected_hours)
+hours = selected_hours["hour_range"]
 
-# pf, pf_mw, pfdc, pcurt, pd, pflex, pgmax, pg, pf_tot, pc_tot, bus_duals, branch_duals, bus_ids, branch_ids = run_mn_opf(opf_data, hours, demand_series, pv_series, wind_series; formulation="DC", verbose = false);
+pf, pf_mw, pfdc, pcurt, pd, pflex, pgmax, pg, pf_tot, pc_tot, bus_duals, branch_duals, bus_ids, branch_ids = run_mn_opf(opf_data, hours, demand_series, pv_series, wind_series; formulation="DC", verbose = false);
 
 
-# ## to find out which bus is a candidate for branch connection, determine which bus has the most significant pos/neg dual variation
-# sensitive_buses = []
-# for (i, bus_id) in enumerate(bus_ids)
-#     bus_daily_duals = [duals[i] for (h, duals) in bus_duals]
-#     bus_max_abs = maximum(abs.(bus_daily_duals))
-#     if !isempty(bus_daily_duals[bus_daily_duals.>0])
-#         bus_max_pos_normalised = maximum(bus_daily_duals[bus_daily_duals.>0]) / bus_max_abs
-#     else 
-#         bus_max_pos_normalised = 0
-#     end
-#     if !isempty(bus_daily_duals[bus_daily_duals.<0])
-#         bus_min_neg_normalised = minimum(bus_daily_duals[bus_daily_duals.<0]) / bus_max_abs
-#     else
-#         bus_min_neg_normalised = 0
-#     end
-#     bus_mean_variation = abs((bus_max_pos_normalised + bus_min_neg_normalised) / 2)
+## to find out which bus is a candidate for branch connection, determine which bus has the most significant pos/neg dual variation
+sensitive_buses = []
+for (i, bus_id) in enumerate(bus_ids)
+    bus_daily_duals = [duals[i] for (h, duals) in bus_duals]
+    bus_max_abs = maximum(abs.(bus_daily_duals))
+    if !isempty(bus_daily_duals[bus_daily_duals.>0])
+        bus_max_pos_normalised = maximum(bus_daily_duals[bus_daily_duals.>0]) / bus_max_abs
+    else 
+        bus_max_pos_normalised = 0
+    end
+    if !isempty(bus_daily_duals[bus_daily_duals.<0])
+        bus_min_neg_normalised = minimum(bus_daily_duals[bus_daily_duals.<0]) / bus_max_abs
+    else
+        bus_min_neg_normalised = 0
+    end
+    bus_mean_variation = abs((bus_max_pos_normalised + bus_min_neg_normalised) / 2)
 
-#     if abs(bus_max_pos_normalised) .> 0.07 && abs(bus_min_neg_normalised) .> 0.07
-#         if opf_data["bus"]["$bus_id"]["base_kv"] > 132
-#             # @show (bus_id, opf_data["bus"]["$bus_id"]["area"], bus_max_pos_normalised*bus_max_abs, bus_min_neg_normalised*bus_max_abs)
-#             push!(sensitive_buses, (bus_id, opf_data["bus"]["$bus_id"]["base_kv"], opf_data["bus"]["$bus_id"]["area"], bus_max_pos_normalised*bus_max_abs, bus_min_neg_normalised*bus_max_abs))
-#         end
-#     end
-# end
-# @show sensitive_buses
+    if abs(bus_max_pos_normalised) .> 0.02 && abs(bus_min_neg_normalised) .> 0.02
+        if opf_data["bus"]["$bus_id"]["base_kv"] > 132
+            # @show (bus_id, opf_data["bus"]["$bus_id"]["area"], bus_max_pos_normalised*bus_max_abs, bus_min_neg_normalised*bus_max_abs)
+            push!(sensitive_buses, (bus_id, opf_data["bus"]["$bus_id"]["base_kv"], opf_data["bus"]["$bus_id"]["area"], bus_max_pos_normalised*bus_max_abs, bus_min_neg_normalised*bus_max_abs))
+        end
+    end
+end
+@show sensitive_buses
 
-# total_variation_sorted =  [x[3]/maximum([abs(x[3]),abs(x[4])]) + x[4]/maximum([abs(x[3]),abs(x[4])]) for x in sensitive_buses]
-# sorted_buses = sort(sensitive_buses, by=x->x[3]/maximum([abs(x[3]),abs(x[4])]) + x[4]/maximum([abs(x[3]),abs(x[4])]))
+total_variation_sorted =  [x[3]/maximum([abs(x[3]),abs(x[4])]) + x[4]/maximum([abs(x[3]),abs(x[4])]) for x in sensitive_buses]
+sorted_buses = sort(sensitive_buses, by=x->x[3]/maximum([abs(x[3]),abs(x[4])]) + x[4]/maximum([abs(x[3]),abs(x[4])]))
 
 ##
 # """ 
@@ -133,13 +133,30 @@ else
 end
 
 ## Plots
-mkdir("./Scripts/PowerModels_tnep/Figures")
+mkpath("./Scripts/PowerModels_tnep/Figures")
 
 buses_NSW_xy = [(bus["x"], bus["y"]) for (i, bus) in tnep_data["bus"] if bus["area"]==1 && haskey(bus, "x")]
 buses_Vic_xy = [(bus["x"], bus["y"]) for (i, bus) in tnep_data["bus"] if bus["area"]==2 && haskey(bus, "x")]
 buses_QLD_xy = [(bus["x"], bus["y"]) for (i, bus) in tnep_data["bus"] if bus["area"]==3 && haskey(bus, "x")]
 buses_SA_xy  = [(bus["x"], bus["y"]) for (i, bus) in tnep_data["bus"] if bus["area"]==4 && haskey(bus, "x")]
 buses_TAS_xy = [(bus["x"], bus["y"]) for (i, bus) in tnep_data["bus"] if bus["area"]==5 && haskey(bus, "x")]
+
+
+gen_Fossil_xy = [(tnep_data["bus"]["$(gen["gen_bus"])"]["x"], tnep_data["bus"]["$(gen["gen_bus"])"]["y"]) for (i,gen) in tnep_data["gen"] if gen["type"]=="Fossil" && haskey(tnep_data["bus"]["$(gen["gen_bus"])"], "x")]
+gen_Wind_xy = [(tnep_data["bus"]["$(gen["gen_bus"])"]["x"], tnep_data["bus"]["$(gen["gen_bus"])"]["y"]) for (i,gen) in tnep_data["gen"] if gen["type"]=="Wind" && haskey(tnep_data["bus"]["$(gen["gen_bus"])"], "x")]
+gen_Solar_xy = [(tnep_data["bus"]["$(gen["gen_bus"])"]["x"], tnep_data["bus"]["$(gen["gen_bus"])"]["y"]) for (i,gen) in tnep_data["gen"] if gen["type"]=="Solar" && haskey(tnep_data["bus"]["$(gen["gen_bus"])"], "x")]
+gen_Hydro_xy = [(tnep_data["bus"]["$(gen["gen_bus"])"]["x"], tnep_data["bus"]["$(gen["gen_bus"])"]["y"]) for (i,gen) in tnep_data["gen"] if gen["type"]=="Hydro" && haskey(tnep_data["bus"]["$(gen["gen_bus"])"], "x")]
+
+plotlyjs()
+map_buses = Plots.scatter(buses_NSW_xy, color=:white, label="NSW")
+Plots.scatter!(buses_Vic_xy, color=:white, label="VIC")
+Plots.scatter!(buses_QLD_xy, color=:white, label="QLD")
+Plots.scatter!(buses_SA_xy, color=:white, label="SA")
+Plots.scatter!(buses_TAS_xy, color=:white, label="TAS")
+# Plots.scatter!(gen_Fossil_xy, color=:black, label="Fossil")
+Plots.scatter!(gen_Wind_xy, color=:green, label="Wind")
+Plots.scatter!(gen_Solar_xy, color=:red, label="Solar")
+Plots.scatter!(gen_Hydro_xy, color=:blue, label="Hydro")
 
 sorted_bus_ids = [758, 93, 135, 10004, 807, 10005, 119, 1566, 844, 1557, 1569, 1570, 1742, 1745, 1764, 1523]
 bus_iaxy = [(i, tnep_data["bus"]["$i"]["area"], tnep_data["bus"]["$i"]["base_kv"], tnep_data["bus"]["$i"]["x"], tnep_data["bus"]["$i"]["y"]) for i in sorted_bus_ids]
